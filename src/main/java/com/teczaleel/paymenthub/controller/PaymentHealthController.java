@@ -15,7 +15,6 @@ import java.util.Map;
 public class PaymentHealthController {
     private final PaymentHealthService healthService;
 
-    // Constructor Dependency Injection - No @Autowired needed for single constructors in Spring 4.x+
     public PaymentHealthController(PaymentHealthService healthService){
         this.healthService = healthService;
     }

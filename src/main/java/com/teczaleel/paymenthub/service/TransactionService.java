@@ -1,5 +1,6 @@
 package com.teczaleel.paymenthub.service;
 
+import com.teczaleel.paymenthub.dto.TransactionRequest;
 import com.teczaleel.paymenthub.entity.PaymentTransaction;
 import com.teczaleel.paymenthub.repository.TransactionRepository;
 import org.springframework.stereotype.Service;
@@ -15,10 +16,19 @@ public class TransactionService {
         this.transactionRepository = transactionRepository;
     }
 
-    public PaymentTransaction createTransaction(PaymentTransaction tx) {
-        // Enforce safe business generation logic for audit trails
+    // REFACTOR: Accept the immutable clean DTO request packet instead of an entity instance
+    public PaymentTransaction createTransaction(TransactionRequest request) {
+        PaymentTransaction tx = new PaymentTransaction();
+
+        // Map data from the incoming network object safely onto our database model
+        tx.setAmount(request.amount());
+        tx.setCurrency(request.currency().toUpperCase());
+
+        tx.setProviderReference("NOT_ASSIGNED");
+
         tx.setTransactionReference("TXN-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
         tx.setStatus("PENDING");
+
         return transactionRepository.save(tx);
     }
 

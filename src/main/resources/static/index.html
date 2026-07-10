@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PaymentHub · Gateway Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F4F8FD;
+    --bg-panel:#FFFFFF;
+    --bg-inset:#EBF2FB;
+    --ink:#12233F;
+    --ink-dim:#4C6079;
+    --ink-faint:#8296B0;
+    --line:rgba(18,35,63,0.09);
+    --line-strong:rgba(18,35,63,0.16);
+    --amber:#3D6FD1;
+    --indigo:#2A4FA8;
+    --green:#1E8A63;
+    --red:#C1443F;
+    --blue:#1D5FD1;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1100px 500px at 12% -10%, rgba(29,95,209,0.08), transparent 60%),
+      radial-gradient(900px 500px at 100% 0%, rgba(29,95,209,0.05), transparent 55%),
+      var(--bg);
+    color:var(--ink);
+    font-family:'IBM Plex Mono', monospace;
+    min-height:100vh;
+    padding:28px 20px 60px;
+  }
+  h1,h2,h3,.display{font-family:'Space Grotesk', sans-serif;}
+  .wrap{max-width:1120px;margin:0 auto;}
+
+  .topbar{
+    display:flex;align-items:flex-end;justify-content:space-between;
+    gap:16px;flex-wrap:wrap;
+    padding-bottom:20px;margin-bottom:22px;
+    border-bottom:1px solid var(--line-strong);
+  }
+  .brand-eyebrow{
+    font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--ink-faint);margin:0 0 6px;
+  }
+  .brand-title{
+    font-size:28px;font-weight:700;margin:0;letter-spacing:-0.01em;
+    display:flex;align-items:center;gap:10px;
+  }
+  .brand-title .mark{
+    width:10px;height:10px;border-radius:3px;background:var(--blue);
+    display:inline-block;transform:rotate(45deg);
+  }
+  .health-pill{
+    display:flex;align-items:center;gap:9px;
+    background:var(--bg-panel);border:1px solid var(--line-strong);
+    padding:9px 14px;border-radius:999px;font-size:12px;color:var(--ink-dim);
+  }
+  .health-dot{width:8px;height:8px;border-radius:50%;background:var(--ink-faint);flex:none;}
+  .health-dot.up{background:var(--green);box-shadow:0 0 0 3px rgba(30,138,99,0.18);}
+  .health-dot.down{background:var(--red);box-shadow:0 0 0 3px rgba(193,68,63,0.18);}
+  .health-dot.checking{background:var(--amber);animation:pulse 1.1s infinite ease-in-out;}
+  @keyframes pulse{0%,100%{opacity:.5;transform:scale(.85);}50%{opacity:1;transform:scale(1.15);}}
+  .health-pill button{
+    background:none;border:none;color:var(--ink-faint);cursor:pointer;
+    font-family:inherit;font-size:11px;text-decoration:underline;padding:0;margin-left:4px;
+  }
+  .health-pill button:hover{color:var(--ink);}
+
+  .grid{display:grid;grid-template-columns:1.05fr 1.3fr;gap:18px;}
+  @media (max-width:860px){.grid{grid-template-columns:1fr;}}
+
+  .panel{
+    background:var(--bg-panel);
+    border:1px solid var(--line-strong);
+    border-radius:var(--radius);
+    padding:22px;
+    box-shadow:0 1px 2px rgba(18,35,63,0.04), 0 8px 24px rgba(18,35,63,0.05);
+  }
+  .panel-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:16px;gap:10px;flex-wrap:wrap;}
+  .panel-title{font-size:14px;font-weight:600;margin:0;letter-spacing:.02em;}
+  .panel-sub{font-size:11px;color:var(--ink-faint);letter-spacing:.06em;text-transform:uppercase;}
+
+  label{
+    display:block;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--ink-faint);margin-bottom:7px;
+  }
+  .field{margin-bottom:16px;}
+  .field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  input,select{
+    width:100%;background:var(--bg-inset);border:1px solid var(--line-strong);
+    color:var(--ink);border-radius:9px;padding:11px 13px;font-family:'IBM Plex Mono',monospace;
+    font-size:14px;outline:none;transition:border-color .15s ease, box-shadow .15s ease;
+  }
+  input::placeholder{color:var(--ink-faint);}
+  input:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(29,95,209,0.16);}
+  select{appearance:none;background-image:linear-gradient(45deg, transparent 50%, var(--ink-dim) 50%),linear-gradient(135deg, var(--ink-dim) 50%, transparent 50%);background-position:calc(100% - 18px) center, calc(100% - 13px) center;background-size:5px 5px,5px 5px;background-repeat:no-repeat;}
+
+  .card-visual{
+    background:linear-gradient(135deg,#1D5FD1,#123B8A);
+    border:1px solid var(--line-strong);border-radius:12px;
+    padding:18px 20px;margin-bottom:18px;position:relative;overflow:hidden;
+  }
+  .card-visual::after{
+    content:"";position:absolute;inset:0;
+    background:radial-gradient(circle at 85% 15%, rgba(255,255,255,0.14), transparent 55%);
+  }
+  .card-brand{font-size:11px;letter-spacing:.14em;color:rgba(255,255,255,0.7);text-transform:uppercase;position:relative;}
+  .card-number-display{font-size:19px;letter-spacing:.09em;margin:14px 0 16px;position:relative;color:#FFFFFF;}
+  .card-meta{display:flex;justify-content:space-between;font-size:10.5px;color:rgba(255,255,255,0.6);letter-spacing:.06em;text-transform:uppercase;position:relative;}
+  .card-meta span b{display:block;font-size:13px;color:#FFFFFF;letter-spacing:normal;text-transform:none;margin-top:3px;font-weight:500;}
+
+  .amount-input-wrap{position:relative;}
+  .amount-input-wrap .sym{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--ink-faint);}
+  .amount-input-wrap input{padding-left:26px;font-size:17px;}
+
+  .sandbox-note{
+    font-size:11.5px;color:var(--ink-faint);line-height:1.5;
+    background:var(--bg-inset);border:1px dashed var(--line-strong);
+    border-radius:9px;padding:10px 12px;margin-bottom:18px;
+  }
+
+  button.submit{
+    width:100%;background:var(--blue);color:#FFFFFF;border:none;
+    font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:14.5px;
+    padding:13px;border-radius:9px;cursor:pointer;letter-spacing:.01em;
+    transition:transform .12s ease, background .15s ease, opacity .15s ease;
+  }
+  button.submit:hover:not(:disabled){background:#164FB0;}
+  button.submit:active:not(:disabled){transform:scale(0.98);}
+  button.submit:disabled{opacity:.55;cursor:progress;}
+  button.submit:focus-visible{outline:2px solid var(--ink);outline-offset:2px;}
+
+  .ledger{
+    background:var(--bg-inset);border:1px solid var(--line-strong);
+    border-radius:10px;height:300px;overflow-y:auto;padding:14px 16px;
+    font-size:12.5px;line-height:1.85;
+  }
+  .ledger::-webkit-scrollbar{width:8px;}
+  .ledger::-webkit-scrollbar-thumb{background:var(--line-strong);border-radius:4px;}
+  .ledger-empty{color:var(--ink-faint);font-style:normal;}
+  .ledger-line{display:flex;gap:10px;opacity:0;animation:fadein .25s ease forwards;}
+  @keyframes fadein{to{opacity:1;}}
+  .ledger-time{color:var(--ink-faint);flex:none;}
+  .ledger-tag{flex:none;font-weight:600;width:64px;}
+  .ledger-tag.stage{color:var(--blue);}
+  .ledger-tag.sign{color:var(--indigo);}
+  .ledger-tag.send{color:var(--indigo);}
+  .ledger-tag.ok{color:var(--green);}
+  .ledger-tag.err{color:var(--red);}
+  .ledger-msg{color:var(--ink);}
+  .ledger-msg .dim{color:var(--ink-faint);}
+
+  .pipeline{display:flex;gap:6px;margin-top:14px;}
+  .pipeline .step{
+    flex:1;height:4px;border-radius:3px;background:var(--line-strong);
+    position:relative;overflow:hidden;
+  }
+  .pipeline .step.active{background:var(--blue);}
+  .pipeline .step.done{background:var(--green);}
+  .pipeline .step.fail{background:var(--red);}
+
+  .history-panel{margin-top:18px;}
+  table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  th{
+    text-align:left;font-size:10px;letter-spacing:.09em;text-transform:uppercase;
+    color:var(--ink-faint);padding:8px 10px;border-bottom:1px solid var(--line-strong);font-weight:500;
+  }
+  td{padding:10px 10px;border-bottom:1px solid var(--line);color:var(--ink);}
+  tr:last-child td{border-bottom:none;}
+  .ref{color:var(--ink-dim);}
+  .badge{
+    display:inline-block;padding:3px 9px;border-radius:999px;font-size:10.5px;
+    letter-spacing:.04em;text-transform:uppercase;font-weight:600;
+  }
+  .badge.SUCCESS{background:rgba(30,138,99,0.13);color:var(--green);}
+  .badge.PENDING{background:rgba(61,111,209,0.13);color:var(--amber);}
+  .badge.DECLINED,.badge.FAILED{background:rgba(193,68,63,0.13);color:var(--red);}
+  .refresh-btn{
+    background:none;border:1px solid var(--line-strong);color:var(--ink-dim);
+    font-family:inherit;font-size:11px;padding:6px 12px;border-radius:7px;cursor:pointer;
+  }
+  .refresh-btn:hover{border-color:var(--blue);color:var(--ink);}
+  .empty-state{padding:26px 10px;text-align:center;color:var(--ink-faint);font-size:12.5px;}
+
+  @media (prefers-reduced-motion: reduce){
+    .health-dot.checking{animation:none;}
+    .ledger-line{animation:none;opacity:1;}
+    *{transition:none !important;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <div>
+      <p class="brand-eyebrow">CyberSource Sandbox Integration</p>
+      <h1 class="brand-title"><span class="mark"></span> PaymentHub Gateway Console</h1>
+    </div>
+    <div class="health-pill" id="healthPill">
+      <span class="health-dot checking" id="healthDot"></span>
+      <span id="healthText">Checking gateway…</span>
+      <button id="healthRefresh" type="button">recheck</button>
+    </div>
+  </div>
+
+  <div class="grid">
+
+    <div class="panel">
+      <div class="panel-head">
+        <h2 class="panel-title">Checkout Simulator</h2>
+        <span class="panel-sub">POST /transactions</span>
+      </div>
+
+      <div class="card-visual">
+        <div class="card-brand" id="cardBrand">Card</div>
+        <div class="card-number-display" id="cardNumberDisplay">•••• •••• •••• ••••</div>
+        <div class="card-meta">
+          <span>Expires<b id="cardExpDisplay">MM/YY</b></span>
+          <span>Holder<b>Sandbox Tester</b></span>
+        </div>
+      </div>
+
+      <form id="paymentForm">
+        <div class="field">
+          <label for="cardNumber">Card number</label>
+          <input type="text" id="cardNumber" inputmode="numeric" placeholder="4111 1111 1111 1111" maxlength="19" value="4111 1111 1111 1111">
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="cardExpiry">Expiry</label>
+            <input type="text" id="cardExpiry" placeholder="MM/YY" maxlength="5" value="12/30">
+          </div>
+          <div class="field">
+            <label for="cardCvc">CVC</label>
+            <input type="text" id="cardCvc" inputmode="numeric" placeholder="123" maxlength="4" value="123">
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="amount">Amount</label>
+            <div class="amount-input-wrap">
+              <span class="sym" id="currencySym">$</span>
+              <input type="number" id="amount" step="0.01" min="0.01" required value="10.00">
+            </div>
+          </div>
+          <div class="field">
+            <label for="currency">Currency</label>
+            <select id="currency">
+              <option value="USD">USD — US Dollar</option>
+              <option value="EUR">EUR — Euro</option>
+              <option value="GBP">GBP — British Pound</option>
+            </select>
+          </div>
+        </div>
+
+        <p class="sandbox-note">Sandbox mode — the gateway authorizes against a fixed CyberSource test card regardless of the number entered above. Card fields here simulate the checkout experience your customers would see.</p>
+
+        <button type="submit" class="submit" id="submitBtn">Authorize Payment</button>
+      </form>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h2 class="panel-title">Gateway Activity Ledger</h2>
+        <span class="panel-sub">Signing · HMAC-SHA256</span>
+      </div>
+
+      <div class="ledger" id="ledger">
+        <p class="ledger-empty">Awaiting first transaction. Submit a payment to watch the request get staged, digested, signed, and dispatched to CyberSource in real time.</p>
+      </div>
+
+      <div class="pipeline" id="pipeline">
+        <div class="step" data-step="stage"></div>
+        <div class="step" data-step="digest"></div>
+        <div class="step" data-step="sign"></div>
+        <div class="step" data-step="dispatch"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="panel history-panel">
+    <div class="panel-head">
+      <h2 class="panel-title">Transaction History</h2>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span class="panel-sub" id="historyCount">GET /transactions</span>
+        <button class="refresh-btn" id="refreshHistory" type="button">Refresh</button>
+      </div>
+    </div>
+    <div id="historyWrap">
+      <div class="empty-state">Loading transaction history…</div>
+    </div>
+  </div>
+
+  <footer style="text-align:center;margin-top:26px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint);">
+    Developed by OSAEAFARI
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  const API_BASE = '/api/v1';
+  const ledgerEl = document.getElementById('ledger');
+  const pipelineSteps = document.querySelectorAll('#pipeline .step');
+  let ledgerStarted = false;
+
+  function timeStr(){
+    return new Date().toLocaleTimeString([], {hour12:false});
+  }
+
+  function logLine(tag, tagClass, html){
+    if(!ledgerStarted){ ledgerEl.innerHTML = ''; ledgerStarted = true; }
+    const row = document.createElement('div');
+    row.className = 'ledger-line';
+    row.innerHTML = `<span class="ledger-time">${timeStr()}</span><span class="ledger-tag ${tagClass}">${tag}</span><span class="ledger-msg">${html}</span>`;
+    ledgerEl.appendChild(row);
+    ledgerEl.scrollTop = ledgerEl.scrollHeight;
+  }
+
+  function setPipeline(stepName, state){
+    pipelineSteps.forEach(s => {
+      if(s.dataset.step === stepName){
+        s.classList.remove('active','done','fail');
+        s.classList.add(state);
+      }
+    });
+  }
+  function resetPipeline(){
+    pipelineSteps.forEach(s => s.classList.remove('active','done','fail'));
+  }
+
+  function wait(ms){ return new Promise(r => setTimeout(r, ms)); }
+
+  const cardNumberInput = document.getElementById('cardNumber');
+  const cardNumberDisplay = document.getElementById('cardNumberDisplay');
+  const cardExpiryInput = document.getElementById('cardExpiry');
+  const cardExpDisplay = document.getElementById('cardExpDisplay');
+  const cardBrand = document.getElementById('cardBrand');
+  const currencySelect = document.getElementById('currency');
+  const currencySym = document.getElementById('currencySym');
+  const symbols = {USD:'$', EUR:'€', GBP:'£'};
+
+  function detectBrand(digits){
+    if(/^4/.test(digits)) return 'Visa';
+    if(/^5[1-5]/.test(digits)) return 'Mastercard';
+    if(/^3[47]/.test(digits)) return 'Amex';
+    return 'Card';
+  }
+
+  function formatCardNumber(raw){
+    const digits = raw.replace(/\D/g,'').slice(0,19);
+    return digits.replace(/(.{4})/g,'$1 ').trim();
+  }
+
+  cardNumberInput.addEventListener('input', () => {
+    const formatted = formatCardNumber(cardNumberInput.value);
+    cardNumberInput.value = formatted;
+    const digits = formatted.replace(/\s/g,'');
+    cardBrand.textContent = detectBrand(digits);
+    cardNumberDisplay.textContent = digits.length ? formatted : '•••• •••• •••• ••••';
+  });
+
+  cardExpiryInput.addEventListener('input', () => {
+    let v = cardExpiryInput.value.replace(/\D/g,'').slice(0,4);
+    if(v.length >= 3) v = v.slice(0,2) + '/' + v.slice(2);
+    cardExpiryInput.value = v;
+    cardExpDisplay.textContent = v || 'MM/YY';
+  });
+
+  currencySelect.addEventListener('change', () => {
+    currencySym.textContent = symbols[currencySelect.value] || '$';
+  });
+
+  cardNumberInput.dispatchEvent(new Event('input'));
+  cardExpiryInput.dispatchEvent(new Event('input'));
+
+  const healthDot = document.getElementById('healthDot');
+  const healthText = document.getElementById('healthText');
+
+  async function checkHealth(){
+    healthDot.className = 'health-dot checking';
+    healthText.textContent = 'Checking gateway…';
+    try{
+      const res = await fetch(`${API_BASE}/payments/health`);
+      if(!res.ok) throw new Error('bad status');
+      const data = await res.json();
+      healthDot.className = 'health-dot up';
+      healthText.textContent = `Gateway ${data.status || 'UP'} · ${data.gateway || 'CyberSource'}`;
+    }catch(e){
+      healthDot.className = 'health-dot down';
+      healthText.textContent = 'Gateway unreachable';
+    }
+  }
+  document.getElementById('healthRefresh').addEventListener('click', checkHealth);
+  checkHealth();
+  setInterval(checkHealth, 20000);
+
+  const historyWrap = document.getElementById('historyWrap');
+  const historyCount = document.getElementById('historyCount');
+
+  function renderHistory(list){
+    if(!list || list.length === 0){
+      historyWrap.innerHTML = '<div class="empty-state">No transactions yet. Authorize a payment above to see it appear here.</div>';
+      historyCount.textContent = 'GET /transactions · 0';
+      return;
+    }
+    const rows = list.slice().reverse().map(tx => `
+      <tr>
+        <td class="ref">${tx.transactionReference || '—'}</td>
+        <td>${(tx.amount !== undefined ? Number(tx.amount).toFixed(2) : '—')} ${tx.currency || ''}</td>
+        <td><span class="badge ${tx.status}">${tx.status || 'UNKNOWN'}</span></td>
+        <td>${tx.createdAt ? new Date(tx.createdAt).toLocaleString() : '—'}</td>
+      </tr>`).join('');
+    historyWrap.innerHTML = `
+      <table>
+        <thead><tr><th>Reference</th><th>Amount</th><th>Status</th><th>Created</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+    historyCount.textContent = `GET /transactions · ${list.length}`;
+  }
+
+  async function loadHistory(){
+    try{
+      const res = await fetch(`${API_BASE}/transactions`);
+      if(!res.ok) throw new Error('bad status');
+      const data = await res.json();
+      renderHistory(data);
+    }catch(e){
+      historyWrap.innerHTML = '<div class="empty-state">Could not load transaction history. The API may not be reachable from this environment.</div>';
+    }
+  }
+  document.getElementById('refreshHistory').addEventListener('click', loadHistory);
+  loadHistory();
+
+  const form = document.getElementById('paymentForm');
+  const submitBtn = document.getElementById('submitBtn');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const amount = parseFloat(document.getElementById('amount').value);
+    const currency = currencySelect.value;
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Processing…';
+    resetPipeline();
+
+    logLine('STAGE', 'stage', `Staging transaction · <span class="dim">amount ${amount.toFixed(2)} ${currency}</span>`);
+    setPipeline('stage', 'active');
+    await wait(350);
+    setPipeline('stage', 'done');
+
+    logLine('DIGEST', 'sign', 'Computing SHA-256 digest of request body…');
+    setPipeline('digest', 'active');
+    await wait(400);
+    setPipeline('digest', 'done');
+
+    logLine('SIGN', 'sign', 'Signing request · <span class="dim">HMAC-SHA256, keyid ****</span>');
+    setPipeline('sign', 'active');
+    await wait(400);
+    setPipeline('sign', 'done');
+
+    logLine('SEND', 'send', 'POST <span class="dim">/pts/v2/payments</span> → apitest.cybersource.com');
+    setPipeline('dispatch', 'active');
+
+    try{
+      const res = await fetch(`${API_BASE}/transactions`, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({amount, currency})
+      });
+      const data = await res.json();
+
+      if(res.ok){
+        setPipeline('dispatch', 'done');
+        if(data.status === 'SUCCESS'){
+          logLine('OK', 'ok', `Gateway responded <b>AUTHORIZED</b> · <span class="dim">${data.transactionReference}</span>`);
+        }else{
+          logLine('ERR', 'err', `Gateway responded <b>${data.status || 'DECLINED'}</b> · <span class="dim">${data.transactionReference || ''}</span>`);
+          setPipeline('dispatch', 'fail');
+        }
+      }else{
+        setPipeline('dispatch', 'fail');
+        logLine('ERR', 'err', `Request rejected · <span class="dim">${(data.error || 'validation failed')}</span>`);
+      }
+    }catch(err){
+      setPipeline('dispatch', 'fail');
+      logLine('ERR', 'err', 'Network error — could not reach the gateway API.');
+    }
+
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Authorize Payment';
+    loadHistory();
+  });
+})();
+</script>
+</body>
+</html>

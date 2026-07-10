@@ -1,26 +1,56 @@
 package com.teczaleel.paymenthub.config;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.client.RestClient;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
 
 /**
- * Type-safe configuration bean binding CyberSource credentials from properties files.
+ * Enterprise gateway initialization bean mapping configuration settings
+ * and preparing the central RestClient communication channel.
  */
 @Configuration
-@ConfigurationProperties(prefix = "payments.cybersource")
 public class CyberSourceConfig {
 
+    @Value("${cybersource.base-url}")
+    private String baseUrl;
+
+    @Value("${cybersource.merchant-id}")
     private String merchantId;
-    private String apiKey;
-    private boolean sandboxMode;
 
-    // Getters and Setters (Required for standard Spring properties binding)
+    @Value("${cybersource.api-key-id}")
+    private String apiKeyId;
+
+    @Value("${cybersource.api-secret-key}")
+    private String apiSecretKey;
+
+    /**
+     * Instantiates and registers a customized, globally accessible RestClient bean
+     * bound permanently to the CyberSource Base URL.
+     */
+    @Bean
+    public RestClient cyberSourceRestClient() {
+        return RestClient.builder()
+                .baseUrl(baseUrl)
+                .defaultHeader("Content-Type", "application/json")
+                .defaultHeader("v-c-merchant-id", merchantId)
+                .build();
+    }
+
+    // Standard high-performance getters to expose credential details cleanly to security services
+    public String getBaseUrl() { return baseUrl; }
     public String getMerchantId() { return merchantId; }
-    public void setMerchantId(String merchantId) { this.merchantId = merchantId; }
+    public String getApiKeyId() { return apiKeyId; }
+    public String getApiSecretKey() { return apiSecretKey; }
 
-    public String getApiKey() { return apiKey; }
-    public void setApiKey(String apiKey) { this.apiKey = apiKey; }
-
-    public boolean isSandboxMode() { return sandboxMode; }
-    public void setSandboxMode(boolean sandboxMode) { this.sandboxMode = sandboxMode; }
+    public boolean isSandboxMode() {
+        return baseUrl != null && baseUrl.contains("apitest");
+    }
 }
+

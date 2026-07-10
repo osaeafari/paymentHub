@@ -1,7 +1,10 @@
 package com.teczaleel.paymenthub.controller;
 
+import com.teczaleel.paymenthub.dto.TransactionRequest;
 import com.teczaleel.paymenthub.entity.PaymentTransaction;
+import com.teczaleel.paymenthub.service.PaymentService;
 import com.teczaleel.paymenthub.service.TransactionService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -11,14 +14,16 @@ import java.util.List;
 public class TransactionController {
 
     private final TransactionService transactionService;
+    private final PaymentService paymentService;
 
-    public TransactionController(TransactionService transactionService) {
+    public TransactionController(TransactionService transactionService, PaymentService paymentService) {
         this.transactionService = transactionService;
+        this.paymentService = paymentService;
     }
 
     @PostMapping
-    public ResponseEntity<PaymentTransaction> processTransaction(@RequestBody PaymentTransaction rawPayload) {
-        PaymentTransaction processedTx = transactionService.createTransaction(rawPayload);
+    public ResponseEntity<PaymentTransaction> processTransaction(@Valid @RequestBody TransactionRequest rawPayload) {
+        PaymentTransaction processedTx = paymentService.processPayment(rawPayload);
         return ResponseEntity.ok(processedTx);
     }
 

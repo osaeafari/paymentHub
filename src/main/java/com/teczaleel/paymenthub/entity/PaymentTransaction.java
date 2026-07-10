@@ -27,6 +27,8 @@ public class PaymentTransaction {
     @Column(nullable = false)
     private String status;
 
+    private String providerReference;
+
     private LocalDateTime createdAt;
 
     // Standard lifecycle trigger to stamp creation time automatically before inserting
@@ -47,6 +49,9 @@ public class PaymentTransaction {
 
     public String getCurrency() { return currency; }
     public void setCurrency(String currency) { this.currency = currency; }
+
+    public String getProviderReference() { return providerReference;}
+    public void setProviderReference(String providerReference) {this.providerReference = providerReference;}
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }

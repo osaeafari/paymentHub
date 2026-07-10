@@ -9,8 +9,6 @@ import org.springframework.context.ApplicationContext;
 public class PaymentHubApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(PaymentHubApplication.class, args);
-
         ApplicationContext context = SpringApplication.run(PaymentHubApplication.class, args);
 
         // Extract and verify our bound configuration bean
